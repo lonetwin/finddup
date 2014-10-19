@@ -22,10 +22,7 @@ class TestFinddup(TestCase):
                          ('What is love?.flac', 'what-is-love.flac'),
                         ]
 
-        hash_fn = hash_fuzzy()
-        self.assertTrue(callable(hash_fn))
-
         for first, second in similar_files:
-            self.assertEqual( hash_fn('/', first), hash_fn('/a/', second) )
+            self.assertEqual( hash_fuzzy('/', first), hash_fuzzy('/a/', second) )
 
 
