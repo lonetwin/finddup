@@ -50,10 +50,14 @@ def hash_md5(path, name, blocksize):
     with open(filename, 'rb') as fl:
         return hashlib.md5(fl.read(readbytes)).hexdigest()
 
+punctuation_re = '|'.join(
+        # - escape characters that have special meaning in regexs
+        '%s%s' % ('' if char not in '.?+*|[]()$^\\' else '\\', char)
+            for char in string.punctuation)
 
-def hash_fuzzy():
-    """Returns a function that will first ^normalize^ a filename and then
-    return the md5 digest of the normalized name.
+def hash_fuzzy(ignored, name):
+    """First ^normalize^ a filename and then return the md5 digest of the
+    normalized name.
 
     Normalizing means:
         * converting the filename to lowercase
@@ -61,20 +65,13 @@ def hash_fuzzy():
         * replacing '&' with 'and' in the filename
         * removing all punctuation characters in the filename
     """
-    punctuation_re = '|'.join(
-            # - escape characters that have special meaning in regexs
-            '%s%s' % ('' if char not in '.?+*|[]()$^\\' else '\\', char)
-                for char in string.punctuation)
-
-    def inner(path, name):
-        name = name.lower()
-        for pattern, substitution in ((' +', ''),           # remove spaces
-                                      ('&', 'and'),         # replace & with 'And'
-                                      (punctuation_re, ''), # remove punctuation
-                                      ):
-            name = re.sub(pattern, substitution, name)
-        return hashlib.md5(name.encode('utf-8')).hexdigest()
-    return inner
+    name = name.lower()
+    for pattern, substitution in ((' +', ''),           # remove spaces
+                                  ('&', 'and'),         # replace & with 'And'
+                                  (punctuation_re, ''), # remove punctuation
+                                  ):
+        name = re.sub(pattern, substitution, name)
+    return hashlib.md5(name.encode('utf-8')).hexdigest()
 
 
 def main():
@@ -112,9 +109,9 @@ def main():
     if args.md5:
         hash_fn = partial(hash_md5, blocksize=blocksize)
     elif args.fuzzy:
-        hash_fn = hash_fuzzy()
+        hash_fn = hash_fuzzy
     else: # args.name <- default
-        hash_fn = lambda path, name: name
+        hash_fn = lambda _, name: name
 
     # - begin hashing
     file_hash = {}
