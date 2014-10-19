@@ -5,7 +5,7 @@ import re
 import string
 import hashlib
 import argparse
-from functools import wraps, partial
+from functools import partial
 
 # borrowed from http://goo.gl/kFJZKb
 # which originally borrowed from http://goo.gl/zeJZl
