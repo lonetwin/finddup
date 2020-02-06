@@ -46,7 +46,7 @@ def hash_md5(path, name, blocksize):
     if not os.path.isfile(filename):
         return 'NotARegularFile'
     flsize = os.stat(filename).st_size
-    readbytes = flsize if flsize < blocksize else blocksize
+    readbytes = None if flsize < blocksize else blocksize
     with open(filename, 'rb') as fl:
         return hashlib.md5(fl.read(readbytes)).hexdigest()
 
@@ -89,6 +89,8 @@ def main():
     parser.add_argument('DIRECTORIES', nargs='+', help="directories to search")
     parser.add_argument('-e', '--exclude',
                         help='exclude files where the path matches the provided regex pattern')
+    parser.add_argument('-o', '--only', default='.*',
+                        help='only consider files where the name matches the provided regex pattern')
 
     ex_group = parser.add_mutually_exclusive_group()
 
@@ -115,16 +117,17 @@ def main():
     else: # args.name <- default
         hash_fn = lambda _, name: name
 
-    fname_pattern = re.compile(args.exclude)
+    path_pattern = re.compile(args.exclude)
+    name_pattern = re.compile(args.only)
 
     # - begin hashing
     file_hash = {}
     nfiles = 0
     for directory in args.DIRECTORIES:
         for root, subdirs, files in os.walk(directory):
-            for name in files:
+            for name in filter(name_pattern.search, files):
                 path = os.path.join(root, name)
-                if fname_pattern.search(path):
+                if path_pattern.search(path):
                     continue
                 nfiles += 1
                 file_hash.setdefault(hash_fn(root, name), []).append(path)
