@@ -134,7 +134,7 @@ def main():
         print('%s\n\t%s' % (k, '\n\t'.join(sorted(v))))
 
     if dups:
-        print('\nProcessed {} files and found {} possible duplicates'.format(nfiles, len(file_hash)))
+        print('\nProcessed {} files and found {} possible duplicates'.format(nfiles, len(dups)))
     else:
         print('\nProcessed {} files and found no duplicates'.format(nfiles))
 
