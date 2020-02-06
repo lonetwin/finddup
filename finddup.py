@@ -87,6 +87,8 @@ def main():
                 )
 
     parser.add_argument('DIRECTORIES', nargs='+', help="directories to search")
+    parser.add_argument('-e', '--exclude',
+                        help='exclude files where the path matches the provided regex pattern')
 
     ex_group = parser.add_mutually_exclusive_group()
 
@@ -113,20 +115,28 @@ def main():
     else: # args.name <- default
         hash_fn = lambda _, name: name
 
+    fname_pattern = re.compile(args.exclude)
+
     # - begin hashing
     file_hash = {}
     nfiles = 0
     for directory in args.DIRECTORIES:
         for root, subdirs, files in os.walk(directory):
-            nfiles += 1
             for name in files:
-                file_hash.setdefault(hash_fn(root, name), []).append(os.path.join(root, name))
+                path = os.path.join(root, name)
+                if fname_pattern.search(path):
+                    continue
+                nfiles += 1
+                file_hash.setdefault(hash_fn(root, name), []).append(path)
 
-    for k, v in file_hash.items():
-        if len(v) > 1:
-            print('%s\n\t%s' % (k, '\n\t'.join(sorted(v))))
+    dups = {k: v for k, v in file_hash.items() if len(v) > 1}
+    for k, v in dups.items():
+        print('%s\n\t%s' % (k, '\n\t'.join(sorted(v))))
 
-    print('\nProcessed {} files and found {} possible duplicates'.format(nfiles, len(file_hash)))
+    if dups:
+        print('\nProcessed {} files and found {} possible duplicates'.format(nfiles, len(file_hash)))
+    else:
+        print('\nProcessed {} files and found no duplicates'.format(nfiles))
 
 if __name__ == '__main__':
     main()
