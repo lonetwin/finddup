@@ -87,7 +87,7 @@ def main():
                 )
 
     parser.add_argument('DIRECTORIES', nargs='+', help="directories to search")
-    parser.add_argument('-e', '--exclude',
+    parser.add_argument('-e', '--exclude', default='(?!.*)',
                         help='exclude files where the path matches the provided regex pattern')
     parser.add_argument('-o', '--only', default='.*',
                         help='only consider files where the name matches the provided regex pattern')
