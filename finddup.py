@@ -50,27 +50,18 @@ def hash_md5(path, name, blocksize):
     with open(filename, 'rb') as fl:
         return hashlib.md5(fl.read(readbytes)).hexdigest()
 
-punctuation_re = '|'.join(
-        # - escape characters that have special meaning in regexs
-        '%s%s' % ('' if char not in '.?+*|[]()$^\\' else '\\', char)
-            for char in string.punctuation)
 
 def hash_fuzzy(ignored, name):
     """First ^normalize^ a filename and then return the md5 digest of the
     normalized name.
 
     Normalizing means:
-        * converting the filename to lowercase
-        * removing all spaces in the filename
-        * replacing '&' with 'and' in the filename
-        * removing all punctuation characters in the filename
+        * converting the filename to lowercase & removing the extension
+        * removing all spaces and punctuation in the filename
     """
-    name = name.lower()
-    for pattern, substitution in ((' +', ''),           # remove spaces
-                                  ('&', 'and'),         # replace & with 'And'
-                                  (punctuation_re, ''), # remove punctuation
-                                  ):
-        name = re.sub(pattern, substitution, name)
+    name, _ = os.path.splitext(name.lower())
+    name = name.replace('&', 'and')
+    name = name.translate(None, string.whitespace + string.punctuation)
     return hashlib.md5(name.encode('utf-8')).hexdigest()
 
 
