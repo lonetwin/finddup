@@ -94,12 +94,13 @@ def main():
     parser.add_argument('-m', '--md5', action="store_true",
             help="use md5 checksums (slowest)")
 
-    ex_group.add_argument('-B', '--blocksize', default='4K',
-            help="limit md5 checksums to first BLOCKSIZE bytes")
+    ex_group.add_argument('-B', '--blocksize', default='512K',
+            help="limit md5 checksums to first BLOCKSIZE bytes. "
+                 "Recognizes human readable formats, eg: 1G, 32M")
 
     args = parser.parse_args()
 
-    blocksize = human2bytes(args.blocksize if args.blocksize else '4K')
+    blocksize = human2bytes(args.blocksize if args.blocksize else '512K')
 
     if args.md5:
         hash_fn = partial(hash_md5, blocksize=blocksize)
