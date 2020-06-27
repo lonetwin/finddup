@@ -1,17 +1,23 @@
 finddup
 =======
 
-Command to find duplicate files under a set of directories (using name, _fuzzy name_ or md5 checksum matches)
+Command to look up duplicate files under a set of directories (using name,
+_fuzzy name_ or md5 checksum matches) and report either the duplicate files or
+files without duplicates.
 
 Examples:
 ```
 # find duplicates using md5 checksums of the first 4k bytes of files under /home/foobar
 $ python finddup.py -m /home/foobar
 
-
 # find duplicates using md5 checksums of the first 8k bytes of file under /home/foo
 # and /home/bar
 $ python finddup.py -m -b 8k /home/foo /home/bar
+
+# find duplicates using md5 checksums of the first 8k bytes of file under /home/foo
+# and /home/bar and report files that do not have duplicate copies in either of the
+# directories
+$ python finddup.py -I -m -b 8k /home/foo /home/bar
 
 # find duplicates by 'fuzzy' matching the names of files under /home/foo and /home/bar
 # and /tmp/baz

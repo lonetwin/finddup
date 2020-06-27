@@ -7,6 +7,7 @@ import hashlib
 import argparse
 from functools import partial
 
+
 # borrowed from http://goo.gl/kFJZKb
 # which originally borrowed from http://goo.gl/zeJZl
 def human2bytes(s):
@@ -34,7 +35,8 @@ def human2bytes(s):
 
 
 class HelpFormatterMixin(argparse.RawDescriptionHelpFormatter,
-                         argparse.ArgumentDefaultsHelpFormatter): pass
+                         argparse.ArgumentDefaultsHelpFormatter):
+    """Formatter class to correctly display example in the epilog."""
 
 
 def hash_md5(path, name, blocksize):
@@ -86,17 +88,21 @@ def main():
     ex_group = parser.add_mutually_exclusive_group()
 
     ex_group.add_argument('-n', '--name', action="store_true", default=True,
-            help="use exact filenames (fastest)")
+                          help="use exact filenames (fastest)")
 
     ex_group.add_argument('-f', '--fuzzy', action="store_true",
-            help="use fuzzy match of file names")
+                          help="use fuzzy match of file names")
 
     parser.add_argument('-m', '--md5', action="store_true",
-            help="use md5 checksums (slowest)")
+                        help="use md5 checksums (slowest)")
 
     ex_group.add_argument('-B', '--blocksize', default='512K',
-            help="limit md5 checksums to first BLOCKSIZE bytes. "
-                 "Recognizes human readable formats, eg: 1G, 32M")
+                          help=("limit md5 checksums to first BLOCKSIZE bytes. "
+                                "Recognizes human readable formats, eg: 1G, 32M"))
+
+    parser.add_argument('-I', '--inverse', action="store_true", default=False,
+                        help=("Inverse the report, ie: report files for "
+                              "that *do not* have a duplicate copy."))
 
     args = parser.parse_args()
 
@@ -124,14 +130,26 @@ def main():
                 nfiles += 1
                 file_hash.setdefault(hash_fn(root, name), []).append(path)
 
-    dups = {k: v for k, v in file_hash.items() if len(v) > 1}
-    for k, v in dups.items():
+    if args.inverse:
+        report = {k: v for k, v in file_hash.items() if len(v) == 1}
+    else:
+        report = {k: v for k, v in file_hash.items() if len(v) > 1}
+
+    for k, v in report.items():
         print('%s\n\t%s' % (k, '\n\t'.join(sorted(v))))
 
-    if dups:
-        print('\nProcessed {} files and found {} possible duplicates'.format(nfiles, len(dups)))
+    print('\nProcessed {} files '.format(nfiles),)
+    if report:
+        if args.inverse:
+            print('and found {} files without duplicates'.format(len(report)))
+        else:
+            print('and found {} possible duplicates'.format(len(report)))
     else:
-        print('\nProcessed {} files and found no duplicates'.format(nfiles))
+        if args.inverse:
+            print('\nProcessed {} files and found all files duplicated'.format(nfiles))
+        else:
+            print('\nProcessed {} files and found no duplicates'.format(nfiles))
+
 
 if __name__ == '__main__':
     main()
